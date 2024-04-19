@@ -4,6 +4,13 @@ from glob import glob
 package_name = "thymio_example"
 
 
+
+
+
+
+
+
+
 setup(
     name=package_name,
     version="0.0.0",
