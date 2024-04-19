@@ -1,0 +1,32 @@
+<!-- 
+    ROS 2 launch files allow you to start up and configure complex robotic 
+    systems composed of multiple ROS 2 nodes simultaneously. They can be written
+    in either Python, XML or YAML: in this course we will focus on XML since it is
+    the most user friendly format.
+    ROS 2 launch files are special Python files that contain a function named
+    generate_launch_description. This function must return a LaunchDescription
+    object that represents the sets of actions that ROS should execute to start
+    the system.
+    
+    NOTE: setup.py must also be updated to start using launch files
+    
+    See also: https://docs.ros.org/en/humble/Tutorials/Intermediate/Launch/Launch-Main.html
+ -->
+<launch>
+  <!-- Create a launch argument. It can be used to supply values on the command line, 
+       with the following syntax: ros2 launch <package_name> <launch_file> thymio_name:=thymio1 -->
+  <arg name="thymio_name" default="thymio0"/>
+  
+  <!-- 
+       Start a ROS node, equivalent to: ros2 run <package_name> <executable_name> 
+       
+       The `namespace` option launches controller_node in the namespace defined by 
+       the `thymio_name` launch argument (default: /thymio0). Combined with the use of
+       relative topic names in controller_node, this provides a nice way to specify which 
+       robot this node should control.
+       
+       The `output` option configures the node to print to the terminal, to help with debugging.
+       By default, nodes launched from a launch file print their output to a log file.
+  -->
+  <node pkg="thymio_example" exec="controller_node" namespace="$(var thymio_name)" output='screen' />
+</launch>
