@@ -1,4 +1,5 @@
 import sys
+from enum import Enum
 
 import rclpy
 import tf_transformations
@@ -9,11 +10,19 @@ from rclpy.task import Future
 from sensor_msgs.msg import Range
 
 
+class State(Enum):
+    FORWARD = 0
+    TURNING = 1
+    TURNED_AROUND = 2
+    BACKING = 3
+
+
 class ControllerNode(Node):
     def __init__(self):
         super().__init__("controller_node")
 
         self.done_future = None
+        self.state = State.FORWARD
 
         # Create attributes to store odometry pose and velocity
         self.odom_pose = None
@@ -75,16 +84,7 @@ class ControllerNode(Node):
 
     def odom_callback(self, msg):
         self.odom_pose = msg.pose.pose
-        self.odom_valocity = msg.twist.twist
-
-        pose2d = self.pose3d_to_2d(self.odom_pose)
-
-        self.get_logger().info(
-            "odometry: received pose (x: {:.2f}, y: {:.2f}, theta: {:.2f})".format(
-                *pose2d
-            ),
-            throttle_duration_sec=0.5,  # Throttle logging frequency to max 2Hz
-        )
+        self.odom_velocity = msg.twist.twist
 
     def prox_center_callback(self, msg):
         self.prox_center = msg.range
@@ -107,7 +107,7 @@ class ControllerNode(Node):
     def prox_rear_right_callback(self, msg):
         self.prox_rear_right = msg.range
 
-    def pose3d_to_2d(self, pose3):
+    def pose3d_to_2d(self, pose3) -> (float, float, float):
         quaternion = (
             pose3.orientation.x,
             pose3.orientation.y,
@@ -126,25 +126,74 @@ class ControllerNode(Node):
         return pose2
 
     def update_callback(self):
+        if self.odom_pose is None:
+            # Wait until we receive the current pose for the first time
+            return
+
         # add the proximity ranges for each side
         prox_left_side = self.prox_left + self.prox_center_left
         prox_right_side = self.prox_right + self.prox_center_right
+
+        # sum ranges from -4.0 to 0
         prox_sum = prox_left_side + prox_right_side
         prox_difference = prox_left_side - prox_right_side
 
+        prox_rear_sum = self.prox_rear_left + self.prox_rear_right
+        prox_rear_diff = abs(self.prox_rear_right) - abs(self.prox_rear_left)
+        x, y, theta = self.pose3d_to_2d(self.odom_pose)
+
         cmd_vel = Twist()
 
-        speed = max(0, (-prox_sum / 8) - 0.4)
-        cmd_vel.linear.x = float(speed)  # [m/s]
-        cmd_vel.angular.z = float(prox_difference)  # 1.0  # [rad/s]
+        speed = max(0, (-prox_sum / 4) - 0.4)
+        rotation = prox_difference
 
-        if speed == 0 and abs(prox_difference) <= 0.03:  # reached final position
-            self.get_logger().info("stopping...")
-            self.stop()
-            self.done_future.set_result(True)
-        else:
-            # Publish the command
-            self.vel_publisher.publish(cmd_vel)
+        # obstacle is in front
+        if self.state == State.FORWARD and speed == 0 and abs(prox_difference) <= 0.03:
+            # start to turn around
+            self.state = State.TURNING
+            speed, rotation = 0, 0
+            self.wall_theta = theta
+
+        elif self.state == State.TURNING:
+            speed = 0
+            rotation = 0.5
+
+            # the robot turned around
+            if abs(theta - self.wall_theta) > 3.1:
+                self.state = State.TURNED_AROUND
+                speed, rotation = 0, 0
+
+        # aligning against the wall
+        elif self.state == State.TURNED_AROUND:
+            speed = 0
+            rotation = -prox_rear_diff
+
+            if abs(prox_rear_sum) > 1:
+                speed = -max(0, (-prox_rear_sum / 4) - 0.4)
+                rotation = 0
+            elif abs(prox_rear_diff) <= 0.03:
+                self.get_logger().info("backing up...")
+                self.state = State.BACKING
+                # record a reference point to measure 2m from
+                self.position = (x, y)
+                speed, rotation = 0, 0
+
+        elif self.state == State.BACKING:
+            speed, rotation = 0, 0
+
+            x_p, y_p = self.position
+            # euclidean distance is less than 2
+            dist = (x - x_p) ** 2 + (y - y_p) ** 2
+            if dist < 4:
+                speed = 0.1
+            else:
+                self.get_logger().info("goal rached. stopping...")
+                self.done_future.set_result(True)
+
+        cmd_vel.linear.x = float(speed)  # [m/s]
+        cmd_vel.angular.z = float(rotation)  # [rad/s]
+
+        self.vel_publisher.publish(cmd_vel)
 
 
 def main():
