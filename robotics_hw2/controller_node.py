@@ -30,6 +30,9 @@ class ControllerNode(Node):
         # namespace in which this node has been started, thus allowing us to
         # specify which Thymio should be controlled.
 
+        self.ticks = 0
+        self.direction = "right"
+
     def start(self):
         # Create and immediately start a timer that will regularly publish commands
         self.timer = self.create_timer(1 / 60, self.update_callback)
@@ -71,10 +74,26 @@ class ControllerNode(Node):
         return pose2
 
     def update_callback(self):
-        # Let's just set some hard-coded velocities in this example
+        ticks_duration = 480
+        print("update_callback")
+        # Change direction after ticks_duration ticks
+        if self.ticks >= ticks_duration:
+            self.ticks = 0
+            if self.direction == "right":
+                self.direction = "left"
+            else:
+                self.direction = "right"
+
         cmd_vel = Twist()
-        cmd_vel.linear.x = 0.2  # [m/s]
-        cmd_vel.angular.z = 0.0  # [rad/s]
+        if self.direction == "right":
+            cmd_vel.linear.x = 0.3  # [m/s]
+            cmd_vel.angular.z = 1.0  # [rad/s]
+        else:  # left
+            cmd_vel.linear.x = 0.3  # [m/s]
+            cmd_vel.angular.z = -1.0  # [rad/s]
+
+        print(f"cmd: {cmd_vel} {cmd_vel.linear.x}")
+        self.ticks += 1
 
         # Publish the command
         self.vel_publisher.publish(cmd_vel)

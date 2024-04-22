@@ -1,7 +1,7 @@
 from setuptools import setup
 from glob import glob
 
-package_name = "thymio_example"
+package_name = "robotics_hw2"
 
 
 setup(
@@ -23,6 +23,6 @@ setup(
     license="TODO: License declaration",
     tests_require=["pytest"],
     entry_points={
-        "console_scripts": ["controller_node = thymio_example.controller_node:main"],
+        "console_scripts": ["controller_node = robotics_hw2.controller_node:main"],
     },
 )
