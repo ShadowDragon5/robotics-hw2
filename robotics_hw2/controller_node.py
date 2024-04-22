@@ -162,15 +162,19 @@ class ControllerNode(Node):
 
         cmd_vel = Twist()
 
-        cmd_vel.linear.x = max(0, -prox_sum / 4)  # [m/s]
+        speed = max(0, (-prox_sum / 8) - 0.4)
+        cmd_vel.linear.x = float(speed)  # [m/s]
         cmd_vel.angular.z = float(prox_difference)  # 1.0  # [rad/s]
 
-        print(f"prox sum: {-prox_sum/4}")
+        print(f"prox speed: {speed}")
         print(f"prox difference: {prox_difference}")
-        self.ticks += 1
 
-        # Publish the command
-        self.vel_publisher.publish(cmd_vel)
+        if speed == 0 and abs(prox_difference) <= 0.03:  # reached final position
+            print("stopping")
+            self.stop()
+        else:
+            # Publish the command
+            self.vel_publisher.publish(cmd_vel)
 
 
 def main():
