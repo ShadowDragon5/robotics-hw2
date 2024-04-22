@@ -27,6 +27,7 @@ setup(
             "task1_node = robotics_hw2.task1_node:main",
             "task2_node = robotics_hw2.task2_node:main",
             "task3_node = robotics_hw2.task3_node:main",
+            "advanced1_node = robotics_hw2.advanced_node:main",
         ],
     },
 )
