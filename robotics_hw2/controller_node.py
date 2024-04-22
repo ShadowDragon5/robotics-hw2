@@ -17,13 +17,13 @@ class ControllerNode(Node):
         self.odom_pose = None
         self.odom_velocity = None
 
-        self.prox_center = None
-        self.prox_center_left = None
-        self.prox_center_right = None
-        self.prox_left = None
-        self.prox_right = None
-        self.prox_rear_left = None
-        self.prox_rear_right = None
+        self.prox_center = -1
+        self.prox_center_left = -1
+        self.prox_center_right = -1
+        self.prox_left = -1
+        self.prox_right = -1
+        self.prox_rear_left = -1
+        self.prox_rear_right = -1
 
         # Create a publisher for the topic 'cmd_vel'
         self.vel_publisher = self.create_publisher(Twist, "cmd_vel", 10)
@@ -125,9 +125,10 @@ class ControllerNode(Node):
 
         return pose2
 
-    def update_callback(self):
+    def update_callback_figure_8(self):
         ticks_duration = 480
         print("update_callback")
+
         # Change direction after ticks_duration ticks
         if self.ticks >= ticks_duration:
             self.ticks = 0
@@ -144,8 +145,28 @@ class ControllerNode(Node):
             cmd_vel.linear.x = 0.3  # [m/s]
             cmd_vel.angular.z = -1.0  # [rad/s]
 
-        print(f"cmd: {cmd_vel} {cmd_vel.linear.x}")
-        print(f"prox: {self.prox_center}")
+        # print(f"cmd: {cmd_vel} {cmd_vel.linear.x}")
+        self.ticks += 1
+
+        # Publish the command
+        self.vel_publisher.publish(cmd_vel)
+
+    def update_callback(self):
+        print("update_callback")
+
+        # add the proximity ranges for each side
+        prox_left_side = self.prox_left + self.prox_center_left
+        prox_right_side = self.prox_right + self.prox_center_right
+        prox_sum = prox_left_side + prox_right_side
+        prox_difference = prox_left_side - prox_right_side
+
+        cmd_vel = Twist()
+
+        cmd_vel.linear.x = max(0, -prox_sum / 4)  # [m/s]
+        cmd_vel.angular.z = float(prox_difference)  # 1.0  # [rad/s]
+
+        print(f"prox sum: {-prox_sum/4}")
+        print(f"prox difference: {prox_difference}")
         self.ticks += 1
 
         # Publish the command
