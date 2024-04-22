@@ -29,6 +29,5 @@
        By default, nodes launched from a launch file print their output to a log file.
   -->
 
-  <set_parameter name="use_sim_time" value="true" />
   <node pkg="robotics_hw2" exec="task1_node" namespace="$(var thymio_name)" output='screen' />
 </launch>
