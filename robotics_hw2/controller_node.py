@@ -4,6 +4,7 @@ import tf_transformations
 
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
+from sensor_msgs.msg import Range
 
 import sys
 
@@ -16,6 +17,14 @@ class ControllerNode(Node):
         self.odom_pose = None
         self.odom_velocity = None
 
+        self.prox_center = None
+        self.prox_center_left = None
+        self.prox_center_right = None
+        self.prox_left = None
+        self.prox_right = None
+        self.prox_rear_left = None
+        self.prox_rear_right = None
+
         # Create a publisher for the topic 'cmd_vel'
         self.vel_publisher = self.create_publisher(Twist, "cmd_vel", 10)
 
@@ -23,6 +32,28 @@ class ControllerNode(Node):
         # self.odom_callback every time a message is received
         self.odom_subscriber = self.create_subscription(
             Odometry, "odom", self.odom_callback, 10
+        )
+
+        self.prox_center_subscriber = self.create_subscription(
+            Range, "proximity/center", self.prox_center_callback, 10
+        )
+        self.prox_center_left_subscriber = self.create_subscription(
+            Range, "proximity/center_left", self.prox_center_left_callback, 10
+        )
+        self.prox_center_right_subscriber = self.create_subscription(
+            Range, "proximity/center_right", self.prox_center_right_callback, 10
+        )
+        self.prox_left_subscriber = self.create_subscription(
+            Range, "proximity/left", self.prox_left_callback, 10
+        )
+        self.prox_right_subscriber = self.create_subscription(
+            Range, "proximity/right", self.prox_right_callback, 10
+        )
+        self.prox_rear_left_subscriber = self.create_subscription(
+            Range, "proximity/rear_left", self.prox_rear_left_callback, 10
+        )
+        self.prox_rear_right_subscriber = self.create_subscription(
+            Range, "proximity/rear_right", self.prox_rear_right_callback, 10
         )
 
         # NOTE: we're using relative names to specify the topics (i.e., without a
@@ -54,6 +85,27 @@ class ControllerNode(Node):
             ),
             throttle_duration_sec=0.5,  # Throttle logging frequency to max 2Hz
         )
+
+    def prox_center_callback(self, msg):
+        self.prox_center = msg.range
+
+    def prox_center_left_callback(self, msg):
+        self.prox_center_left = msg.range
+
+    def prox_center_right_callback(self, msg):
+        self.prox_center_right = msg.range
+
+    def prox_left_callback(self, msg):
+        self.prox_left = msg.range
+
+    def prox_right_callback(self, msg):
+        self.prox_right = msg.range
+
+    def prox_rear_left_callback(self, msg):
+        self.prox_rear_left = msg.range
+
+    def prox_rear_right_callback(self, msg):
+        self.prox_rear_right = msg.range
 
     def pose3d_to_2d(self, pose3):
         quaternion = (
@@ -93,6 +145,7 @@ class ControllerNode(Node):
             cmd_vel.angular.z = -1.0  # [rad/s]
 
         print(f"cmd: {cmd_vel} {cmd_vel.linear.x}")
+        print(f"prox: {self.prox_center}")
         self.ticks += 1
 
         # Publish the command
