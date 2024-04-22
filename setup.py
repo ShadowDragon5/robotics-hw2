@@ -23,6 +23,10 @@ setup(
     license="TODO: License declaration",
     tests_require=["pytest"],
     entry_points={
-        "console_scripts": ["controller_node = robotics_hw2.controller_node:main"],
+        "console_scripts": [
+            "task1_node = robotics_hw2.task1_node:main",
+            "task2_node = robotics_hw2.task2_node:main",
+            "task3_node = robotics_hw2.task3_node:main",
+        ],
     },
 )

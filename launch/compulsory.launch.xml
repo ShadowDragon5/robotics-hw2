@@ -1,0 +1,6 @@
+<launch>
+  <!-- Create a launch argument. It can be used to supply values on the command line, 
+       with the following syntax: ros2 launch <package_name> <launch_file> thymio_name:=thymio1 -->
+  <arg name="thymio_name" default="thymio0"/>
+  <node pkg="robotics_hw2" exec="task3_node" namespace="$(var thymio_name)" output='screen' />
+</launch>

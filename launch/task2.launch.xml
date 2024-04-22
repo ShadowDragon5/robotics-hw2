@@ -1,0 +1,4 @@
+<launch>
+  <arg name="thymio_name" default="thymio0"/>
+  <node pkg="robotics_hw2" exec="task2_node" namespace="$(var thymio_name)" output='screen' />
+</launch>
