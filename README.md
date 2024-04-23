@@ -47,6 +47,8 @@ Furthermore, when relying on odometry to move 2m away from the wall the
 distance sometimes was calculated wrongly, resulting in robot going past the
 target point.
 
+Video: https://youtu.be/P73iTVwVQM4
+
 ## Advanced Task 1 (done)
 ```sh
 # Launch last compulsory task
