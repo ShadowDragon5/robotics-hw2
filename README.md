@@ -38,6 +38,8 @@ ros2 launch robotics_hw2 compulsory.launch.xml
 ```
 Implementation code can be found in `task3_node.py`
 
+The "wall" scene must be loaded to test this controller.
+
 Multiple issues were encountered while doing the last task.
 Firstly, odometry was used to turn the robot around, it proved to be
 inconsistent and erroneous as the robot sometimes failed to fully turn around.
