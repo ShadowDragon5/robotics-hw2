@@ -59,4 +59,6 @@ A MyT ust be placed in the "arena" scene to test this controller.
 
 We first had some issues that the MyT got stuck in a corner and would not explore the whole scene but solved it by introducing random decision on where to move next.
 
+Video: https://youtu.be/xdHU3pF584I
+
 ## Advanced Task 2 (not implemented)
