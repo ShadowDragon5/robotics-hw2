@@ -29,7 +29,7 @@ Implementation code can be found in `task2_node.py`
 
 The "wall" scene must be loaded to test this controller.
 
-We did not face any issues and have no doubbt about our implementation.
+We did not face any issues and have no doubts about our implementation.
 
 ## Task 3 (done)
 ```sh
