@@ -18,8 +18,6 @@ class ControllerNode(Node):
         self.prox_center_right = -1
         self.prox_left = -1
         self.prox_right = -1
-        self.prox_rear_left = -1
-        self.prox_rear_right = -1
 
         # Create a publisher for the topic 'cmd_vel'
         self.vel_publisher = self.create_publisher(Twist, "cmd_vel", 10)
@@ -39,15 +37,6 @@ class ControllerNode(Node):
         self.prox_right_subscriber = self.create_subscription(
             Range, "proximity/right", self.prox_right_callback, 10
         )
-        self.prox_rear_left_subscriber = self.create_subscription(
-            Range, "proximity/rear_left", self.prox_rear_left_callback, 10
-        )
-        self.prox_rear_right_subscriber = self.create_subscription(
-            Range, "proximity/rear_right", self.prox_rear_right_callback, 10
-        )
-
-        self.ticks = 0
-        self.direction = "right"
 
     def start(self) -> Future:
         # Create and immediately start a timer that will regularly publish commands
@@ -75,12 +64,6 @@ class ControllerNode(Node):
 
     def prox_right_callback(self, msg):
         self.prox_right = msg.range
-
-    def prox_rear_left_callback(self, msg):
-        self.prox_rear_left = msg.range
-
-    def prox_rear_right_callback(self, msg):
-        self.prox_rear_right = msg.range
 
     def update_callback(self):
         # add the proximity ranges for each side

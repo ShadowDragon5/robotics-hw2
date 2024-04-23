@@ -67,9 +67,6 @@ class ControllerNode(Node):
             Range, "proximity/rear_right", self.prox_rear_right_callback, 10
         )
 
-        self.ticks = 0
-        self.direction = "right"
-
     def start(self) -> Future:
         # Create and immediately start a timer that will regularly publish commands
         self.timer = self.create_timer(1 / 60, self.update_callback)

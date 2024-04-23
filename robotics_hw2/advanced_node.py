@@ -1,4 +1,5 @@
 import sys
+from enum import IntEnum
 
 import rclpy
 import tf_transformations
@@ -8,6 +9,11 @@ from rclpy.node import Node
 from rclpy.task import Future
 from sensor_msgs.msg import Range
 import random
+
+
+class Strategy(IntEnum):
+    ALWAYS_RIGHT = 0
+    RANDOM_DIRECTION = 1
 
 
 class ControllerNode(Node):
@@ -29,6 +35,7 @@ class ControllerNode(Node):
         self.prox_rear_right = -1
 
         self.random_rotation = None
+        self.strategy = Strategy.ALWAYS_RIGHT
 
         # Create a publisher for the topic 'cmd_vel'
         self.vel_publisher = self.create_publisher(Twist, "cmd_vel", 10)
@@ -60,9 +67,6 @@ class ControllerNode(Node):
         self.prox_rear_right_subscriber = self.create_subscription(
             Range, "proximity/rear_right", self.prox_rear_right_callback, 10
         )
-
-        self.ticks = 0
-        self.direction = "right"
 
     def start(self) -> Future:
         # Create and immediately start a timer that will regularly publish commands
@@ -133,18 +137,25 @@ class ControllerNode(Node):
         speed = 0
         rotation = 0
 
+        # randomly switch strategy
+        if random.randint(0, 10) == 0:
+            self.strategy = (self.strategy + 1) % (len(Strategy) + 1)
+
         # obstacle is in front
-        if prox_sum + 4 > eps:
-            self.stop()
+        if prox_sum + 2 > eps:
             speed = 0
-            if self.random_rotation:
+            if self.strategy == Strategy.ALWAYS_RIGHT:
+                rotation = 2
+            elif self.random_rotation:
                 rotation = self.random_rotation
             else:
-                rotation = 2 * (-1) ** random.randint(0, 1)
+                rotation = 2 * (-1 if random.randint(0, 50) == 0 else 1)
                 self.random_rotation = rotation
         else:
-            speed = 0.2
+            speed = 1
             self.random_rotation = None
+            if self.strategy == Strategy.ALWAYS_RIGHT and random.randint(0, 50) == 0:
+                rotation = -3
 
         cmd_vel.linear.x = float(speed)  # [m/s]
         cmd_vel.angular.z = float(rotation)  # [rad/s]
