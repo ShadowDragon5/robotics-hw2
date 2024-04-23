@@ -121,8 +121,8 @@ class ControllerNode(Node):
 
     def update_callback(self):
         # add the proximity ranges for each side
-        prox_left_side = self.prox_left + self.prox_center_left
-        prox_right_side = self.prox_right + self.prox_center_right
+        prox_left_side = self.prox_center_left
+        prox_right_side = self.prox_center_right
 
         # sum ranges from -4 to 0
         prox_sum = prox_left_side + prox_right_side
