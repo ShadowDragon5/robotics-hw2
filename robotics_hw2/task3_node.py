@@ -179,16 +179,15 @@ class ControllerNode(Node):
                 speed, rotation = 0, 0
 
         elif self.state == State.BACKING:
-            speed, rotation = 0, 0
-
             x_p, y_p = self.position
+
             # euclidean distance is less than 2
-            dist = (x - x_p) ** 2 + (y - y_p) ** 2
-            if dist < 4:
+            if (x - x_p) ** 2 + (y - y_p) ** 2 < 4:
                 speed = 0.1
             else:
                 self.get_logger().info("goal rached. stopping...")
                 self.done_future.set_result(True)
+                speed, rotation = 0, 0
 
         cmd_vel.linear.x = float(speed)  # [m/s]
         cmd_vel.angular.z = float(rotation)  # [rad/s]
