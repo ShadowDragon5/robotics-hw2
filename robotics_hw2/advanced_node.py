@@ -7,6 +7,7 @@ from nav_msgs.msg import Odometry
 from rclpy.node import Node
 from rclpy.task import Future
 from sensor_msgs.msg import Range
+import random
 
 
 class ControllerNode(Node):
@@ -134,7 +135,7 @@ class ControllerNode(Node):
         if prox_sum + 4 > eps:
             self.stop()
             speed = 0
-            rotation = 2
+            rotation = 2 * (-1) ** random.randint(0, 1)
         else:
             speed = 0.2
 
