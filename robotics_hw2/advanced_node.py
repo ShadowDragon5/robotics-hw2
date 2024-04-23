@@ -28,6 +28,8 @@ class ControllerNode(Node):
         self.prox_rear_left = -1
         self.prox_rear_right = -1
 
+        self.random_rotation = None
+
         # Create a publisher for the topic 'cmd_vel'
         self.vel_publisher = self.create_publisher(Twist, "cmd_vel", 10)
 
@@ -135,9 +137,14 @@ class ControllerNode(Node):
         if prox_sum + 4 > eps:
             self.stop()
             speed = 0
-            rotation = 2 * (-1) ** random.randint(0, 1)
+            if self.random_rotation:
+                rotation = self.random_rotation
+            else:
+                rotation = 2 * (-1) ** random.randint(0, 1)
+                self.random_rotation = rotation
         else:
             speed = 0.2
+            self.random_rotation = None
 
         cmd_vel.linear.x = float(speed)  # [m/s]
         cmd_vel.angular.z = float(rotation)  # [rad/s]
